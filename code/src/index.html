@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomaly Detection</title>
+    <style>
+        /* Updated background color to a light warm shade */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Move UI slightly up */
+            height: 100vh;
+            background-color: #ffe6e6; /* Light warm color that matches red */
+            padding-top: 50px; /* Moves UI higher */
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 50%;
+            position: relative;
+            top: -30px; /* Adjust UI positioning higher */
+        }
+
+        .logo {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            width: 120px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #d32f2f; /* Red theme */
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .process-button {
+            background-color: #d32f2f; /* Red button */
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .process-button:hover {
+            background-color: #b71c1c;
+        }
+
+        #statusMessage {
+            font-size: 16px;
+            margin-top: 20px;
+            color: #388e3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">
+            <img src="wells_fargo.png" alt="Company Logo">
+        </div>
+
+        <h2>Anomaly Detection</h2>
+
+        <form id="uploadForm">
+            <div class="file-upload">
+                <label for="fileInput">Input File:</label>
+                <input type="file" id="fileInput" accept=".xlsx" required>
+            </div>
+            <button type="submit" class="process-button">Process</button>
+        </form>
+
+        <p id="statusMessage"></p>
+    </div>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let fileInput = document.getElementById("fileInput").files[0];
+
+            if (!fileInput) {
+                alert("Please select a file.");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("file", fileInput);
+
+            document.getElementById("statusMessage").textContent = "Processing file, please wait...";
+
+            fetch("http://127.0.0.1:5000/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.download_url) {
+                    document.getElementById("statusMessage").textContent = "Processing complete! Downloading file...";
+
+                    let a = document.createElement("a");
+                    a.href = data.download_url;
+                    a.download = "Processed_File.xlsx"; 
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    document.getElementById("statusMessage").textContent = "Error: " + data.error;
+                }
+            })
+            .catch(error => {
+                console.error("Fetch Error:", error);
+                document.getElementById("statusMessage").textContent = "An error occurred.";
+            });
+        });
+    </script>
+
+</body>
+</html>
